@@ -48,9 +48,6 @@ const api = {
   deleteLog: (id) => request(`/logs/${id}`, { method: "DELETE" }),
 
   dashboardDay: (date) => request(`/dashboard/day${date ? `?date=${date}` : ""}`),
-  dashboardWeek: (date) => request(`/dashboard/week${date ? `?date=${date}` : ""}`),
-  dashboardMonth: (year, month) => request(`/dashboard/month?year=${year}&month=${month}`),
-  dashboardYear: (year) => request(`/dashboard/year?year=${year}`),
   dashboardHeatmap: (from, to) =>
     request(`/dashboard/heatmap?${from ? `date_from=${from}&` : ""}${to ? `date_to=${to}` : ""}`),
 };

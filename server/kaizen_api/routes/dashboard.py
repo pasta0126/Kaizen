@@ -10,10 +10,10 @@ from ..db import pool
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 
-async def _daily_totals(con, user_uuid: uuid.UUID, start: dt.date, end: dt.date) -> dict[dt.date, int]:
+async def _daily_totals(con, user_uuid: uuid.UUID, start: dt.date, end: dt.date) -> dict[dt.date, dict]:
     rows = await con.fetch(
         """
-        SELECT occurred_on, COALESCE(SUM(score), 0) AS total
+        SELECT occurred_on, COALESCE(SUM(score), 0) AS total, COUNT(*) AS entry_count
         FROM log_entry
         WHERE user_id = $1 AND occurred_on >= $2 AND occurred_on <= $3
         GROUP BY occurred_on
@@ -22,7 +22,17 @@ async def _daily_totals(con, user_uuid: uuid.UUID, start: dt.date, end: dt.date)
         start,
         end,
     )
-    return {r["occurred_on"]: r["total"] for r in rows}
+    return {r["occurred_on"]: {"total": r["total"], "entry_count": r["entry_count"]} for r in rows}
+
+
+def _build_days_list(totals: dict[dt.date, dict], start: dt.date, end: dt.date) -> list[dict]:
+    days = []
+    d = start
+    while d <= end:
+        day = totals.get(d, {"total": 0, "entry_count": 0})
+        days.append({"date": d.isoformat(), "total": day["total"], "entry_count": day["entry_count"]})
+        d += dt.timedelta(days=1)
+    return days
 
 
 def _week_bounds(date: dt.date) -> tuple[dt.date, dt.date]:
@@ -40,14 +50,14 @@ async def day_view(date: dt.date | None = None, user_id: str = Depends(current_u
             """
             SELECT id, indicator_id, variant_id, occurred_on, occurred_at, score
             FROM log_entry WHERE user_id = $1 AND occurred_on = $2
-            ORDER BY occurred_at
+            ORDER BY occurred_at DESC
             """,
             user_uuid,
             target,
         )
     return {
         "date": target.isoformat(),
-        "total": totals.get(target, 0),
+        "total": totals.get(target, {"total": 0}).get("total", 0),
         "entries": [
             {
                 "id": str(e["id"]),
@@ -68,11 +78,7 @@ async def week_view(date: dt.date | None = None, user_id: str = Depends(current_
     user_uuid = uuid.UUID(user_id)
     async with pool().acquire() as con:
         totals = await _daily_totals(con, user_uuid, start, end)
-    days = []
-    d = start
-    while d <= end:
-        days.append({"date": d.isoformat(), "total": totals.get(d, 0)})
-        d += dt.timedelta(days=1)
+    days = [{"date": d["date"], "total": d["total"]} for d in _build_days_list(totals, start, end)]
     return {
         "week_start": start.isoformat(),
         "week_end": end.isoformat(),
@@ -95,11 +101,7 @@ async def month_view(
     user_uuid = uuid.UUID(user_id)
     async with pool().acquire() as con:
         totals = await _daily_totals(con, user_uuid, start, end)
-    days = []
-    d = start
-    while d <= end:
-        days.append({"date": d.isoformat(), "total": totals.get(d, 0)})
-        d += dt.timedelta(days=1)
+    days = [{"date": d["date"], "total": d["total"]} for d in _build_days_list(totals, start, end)]
     prev_month = start - dt.timedelta(days=1)
     next_month = end + dt.timedelta(days=1)
     return {
@@ -152,9 +154,5 @@ async def heatmap(
     user_uuid = uuid.UUID(user_id)
     async with pool().acquire() as con:
         totals = await _daily_totals(con, user_uuid, start, end)
-    days = []
-    d = start
-    while d <= end:
-        days.append({"date": d.isoformat(), "total": totals.get(d, 0)})
-        d += dt.timedelta(days=1)
+    days = _build_days_list(totals, start, end)
     return {"from": start.isoformat(), "to": end.isoformat(), "days": days}

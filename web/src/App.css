@@ -101,6 +101,12 @@
 }
 
 /* Quick log */
+.quicklog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
 .quicklog-bar {
   display: flex;
   flex-wrap: wrap;
@@ -128,77 +134,77 @@
   color: var(--text-dim);
 }
 
-/* Heatmap */
-.heatmap-wrap {
-  overflow-x: auto;
-}
-
-.heatmap {
+/* Stats row */
+.stats-row {
   display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  padding-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.heatmap-col {
+.stat-card {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  background: none;
-  border: none;
-  padding: 2px;
-  cursor: pointer;
-  border-radius: 3px;
+  gap: 0.15rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 8rem;
+  flex: 1;
 }
 
-.heatmap-col-selected {
-  outline: 2px solid var(--text);
-  outline-offset: 1px;
-}
-
-.heatmap-cell {
-  width: 11px;
-  height: 8px;
-  border-radius: 2px;
-}
-
-.heatmap-empty {
-  background: #2a2e37;
-}
-
-.heatmap-green-light {
-  background: #86efac;
-}
-.heatmap-green-medium {
-  background: #16a34a;
-}
-.heatmap-gold-light {
-  background: #fde68a;
-}
-.heatmap-gold-medium {
-  background: #ca8a04;
-}
-
-.heatmap-legend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.stat-label {
   color: var(--text-dim);
   font-size: 0.75rem;
 }
 
-/* Period switcher */
-.period-switcher {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-.period-nav {
-  margin-left: auto;
+.stat-sub {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+/* Daily bar chart */
+.bar-chart-wrap {
+  margin-top: 1.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.chart-skeleton {
+  height: 180px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--panel) 25%, var(--border) 50%, var(--panel) 75%);
+  background-size: 200% 100%;
+  animation: chart-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes chart-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.chart-tooltip {
   display: flex;
-  gap: 0.25rem;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.period-view {
+  margin-top: 1rem;
 }
 
 .period-view h2 {
@@ -243,6 +249,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.indicator-search {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
 }
 
 .indicator-list {

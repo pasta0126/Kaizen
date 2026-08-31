@@ -18,6 +18,11 @@ export default function IndicatorManager({ indicators, onChanged, onQuickLog }) 
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [search, setSearch] = useState("");
+
+  const visibleIndicators = indicators
+    .filter((ind) => ind.name.toLowerCase().includes(search.trim().toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }));
 
   async function handleCreate(body) {
     await api.createIndicator(body);
@@ -53,8 +58,17 @@ export default function IndicatorManager({ indicators, onChanged, onQuickLog }) 
         <IndicatorForm onSubmit={handleCreate} onCancel={() => setCreating(false)} />
       )}
 
+      <input
+        type="search"
+        className="indicator-search"
+        style={{ marginTop: "0.75rem" }}
+        placeholder="Buscar indicador…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
       <ul className="indicator-list">
-        {indicators.map((ind) =>
+        {visibleIndicators.map((ind) =>
           editingId === ind.id ? (
             <li key={ind.id} className="indicator-row indicator-row-editing">
               <IndicatorForm
@@ -101,6 +115,9 @@ export default function IndicatorManager({ indicators, onChanged, onQuickLog }) 
         )}
         {indicators.length === 0 && !creating && (
           <li className="entry-empty">Aún no tienes indicadores. Crea el primero arriba.</li>
+        )}
+        {indicators.length > 0 && visibleIndicators.length === 0 && (
+          <li className="entry-empty">Ningún indicador coincide con "{search}".</li>
         )}
       </ul>
     </div>

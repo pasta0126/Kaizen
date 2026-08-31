@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import Heatmap from "./Heatmap";
+import DailyBarChart from "./DailyBarChart";
 
 function isoDate(date) {
   return date.toISOString().slice(0, 10);
@@ -12,174 +12,106 @@ function shiftDate(iso, days) {
   return isoDate(d);
 }
 
-function shiftMonth(year, month, delta) {
-  const d = new Date(Date.UTC(year, month - 1 + delta, 1));
-  return { year: d.getUTCFullYear(), month: d.getUTCMonth() + 1 };
-}
-
 function scoreLabel(total) {
   return total > 0 ? `+${total}` : `${total}`;
 }
 
-export default function Dashboard({ indicatorsById, refreshSignal }) {
-  const [granularity, setGranularity] = useState("day");
-  const [cursor, setCursor] = useState(isoDate(new Date()));
-  const [year, setYear] = useState(new Date().getUTCFullYear());
-  const [month, setMonth] = useState(new Date().getUTCMonth() + 1);
+function bestBy(days, key) {
+  if (days.length === 0) return null;
+  let best = days[0];
+  for (const day of days) {
+    if (day[key] >= best[key]) best = day;
+  }
+  return best;
+}
 
-  const [heatmapDays, setHeatmapDays] = useState([]);
-  const [periodData, setPeriodData] = useState(null);
+const HISTORY_DAYS = 20;
+
+export default function Dashboard({ indicatorsById, refreshSignal }) {
+  const today = isoDate(new Date());
+  const yesterday = shiftDate(today, -1);
+  const historyFrom = shiftDate(today, -(HISTORY_DAYS - 1));
+
+  const [days, setDays] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [dayData, setDayData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [chartLoading, setChartLoading] = useState(true);
 
   useEffect(() => {
-    api.dashboardHeatmap().then((res) => setHeatmapDays(res.days));
+    setChartLoading(true);
+    api.dashboardHeatmap(historyFrom, today).then((res) => {
+      setDays(res.days);
+      setChartLoading(false);
+    });
   }, [refreshSignal]);
 
   useEffect(() => {
     setLoading(true);
-    const load =
-      granularity === "day"
-        ? api.dashboardDay(cursor)
-        : granularity === "week"
-          ? api.dashboardWeek(cursor)
-          : granularity === "month"
-            ? api.dashboardMonth(year, month)
-            : api.dashboardYear(year);
-    load.then((data) => {
-      setPeriodData(data);
+    api.dashboardDay(selectedDate).then((data) => {
+      setDayData(data);
       setLoading(false);
     });
-  }, [granularity, cursor, year, month, refreshSignal]);
+  }, [selectedDate, refreshSignal]);
 
-  function selectDay(date) {
-    setCursor(date);
-    setGranularity("day");
-  }
-
-  function goPrev() {
-    if (granularity === "day") setCursor((c) => shiftDate(c, -1));
-    else if (granularity === "week") setCursor((c) => shiftDate(c, -7));
-    else if (granularity === "month") setMonth((m) => {
-      const { year: y, month: nm } = shiftMonth(year, m, -1);
-      setYear(y);
-      return nm;
-    });
-    else setYear((y) => y - 1);
-  }
-
-  function goNext() {
-    if (granularity === "day") setCursor((c) => shiftDate(c, 1));
-    else if (granularity === "week") setCursor((c) => shiftDate(c, 7));
-    else if (granularity === "month") setMonth((m) => {
-      const { year: y, month: nm } = shiftMonth(year, m, 1);
-      setYear(y);
-      return nm;
-    });
-    else setYear((y) => y + 1);
-  }
+  const todayTotal = days.find((d) => d.date === today)?.total ?? 0;
+  const yesterdayTotal = days.find((d) => d.date === yesterday)?.total ?? 0;
+  const delta = todayTotal - yesterdayTotal;
+  const bestScoreDay = bestBy(days, "total");
+  const bestEntriesDay = bestBy(days, "entry_count");
 
   return (
     <div className="dashboard">
-      <Heatmap days={heatmapDays} selectedDate={granularity === "day" ? cursor : null} onSelectDay={selectDay} />
-
-      <div className="period-switcher">
-        {["day", "week", "month", "year"].map((g) => (
-          <button
-            key={g}
-            className={g === granularity ? "btn btn-tab btn-tab-active" : "btn btn-tab"}
-            onClick={() => setGranularity(g)}
-          >
-            {{ day: "Día", week: "Semana", month: "Mes", year: "Año" }[g]}
-          </button>
-        ))}
-        <div className="period-nav">
-          <button className="btn btn-ghost" onClick={goPrev}>
-            ‹
-          </button>
-          <button className="btn btn-ghost" onClick={goNext}>
-            ›
-          </button>
+      <div className="stats-row">
+        <div className="stat-card">
+          <span className="stat-label">Ayer</span>
+          <span className="stat-value">{scoreLabel(yesterdayTotal)}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Hoy</span>
+          <span className="stat-value">{scoreLabel(todayTotal)}</span>
+          <span className={delta > 0 ? "stat-sub score-pos" : delta < 0 ? "stat-sub score-neg" : "stat-sub"}>
+            {delta === 0 ? "= que ayer" : delta > 0 ? `↑ +${delta} vs. ayer` : `↓ ${delta} vs. ayer`}
+          </span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Máx. puntuación</span>
+          <span className="stat-value">{bestScoreDay ? scoreLabel(bestScoreDay.total) : "—"}</span>
+          <span className="stat-sub">{bestScoreDay?.date ?? ""}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Máx. registros</span>
+          <span className="stat-value">{bestEntriesDay ? bestEntriesDay.entry_count : "—"}</span>
+          <span className="stat-sub">{bestEntriesDay?.date ?? ""}</span>
         </div>
       </div>
 
-      {loading || !periodData ? (
-        <p>Cargando…</p>
-      ) : (
-        <PeriodView granularity={granularity} data={periodData} indicatorsById={indicatorsById} />
-      )}
-    </div>
-  );
-}
+      <DailyBarChart
+        days={days}
+        today={today}
+        selectedDate={selectedDate}
+        onSelectDay={setSelectedDate}
+        loading={chartLoading}
+      />
 
-function PeriodView({ granularity, data, indicatorsById }) {
-  if (granularity === "day") {
-    return (
       <div className="period-view">
         <h2>
-          {data.date} · total {scoreLabel(data.total)}
+          {selectedDate} · total {dayData ? scoreLabel(dayData.total) : "…"}
         </h2>
-        <ul className="entry-list">
-          {data.entries.length === 0 && <li className="entry-empty">Sin registros este día.</li>}
-          {data.entries.map((e) => (
-            <li key={e.id} className="entry-row">
-              <span>{indicatorsById[e.indicator_id]?.name ?? "Indicador"}</span>
-              <span className={e.score >= 0 ? "score-pos" : "score-neg"}>{scoreLabel(e.score)}</span>
-            </li>
-          ))}
-        </ul>
+        {loading || !dayData ? (
+          <p>Cargando…</p>
+        ) : (
+          <ul className="entry-list">
+            {dayData.entries.length === 0 && <li className="entry-empty">Sin registros este día.</li>}
+            {dayData.entries.map((e) => (
+              <li key={e.id} className="entry-row">
+                <span>{indicatorsById[e.indicator_id]?.name ?? "Indicador"}</span>
+                <span className={e.score >= 0 ? "score-pos" : "score-neg"}>{scoreLabel(e.score)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-    );
-  }
-
-  if (granularity === "week") {
-    return (
-      <div className="period-view">
-        <h2>
-          Semana {data.week_start} → {data.week_end} · total {scoreLabel(data.total)}
-        </h2>
-        <ul className="entry-list">
-          {data.days.map((d) => (
-            <li key={d.date} className="entry-row">
-              <span>{d.date}</span>
-              <span className={d.total >= 0 ? "score-pos" : "score-neg"}>{scoreLabel(d.total)}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-
-  if (granularity === "month") {
-    return (
-      <div className="period-view">
-        <h2>
-          {data.year}-{String(data.month).padStart(2, "0")} · total {scoreLabel(data.total)}
-        </h2>
-        <ul className="entry-list">
-          {data.days.map((d) => (
-            <li key={d.date} className="entry-row">
-              <span>{d.date}</span>
-              <span className={d.total >= 0 ? "score-pos" : "score-neg"}>{scoreLabel(d.total)}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-
-  return (
-    <div className="period-view">
-      <h2>
-        {data.year} · total {scoreLabel(data.total)}
-      </h2>
-      <ul className="entry-list">
-        {data.months.map((m) => (
-          <li key={m.month} className="entry-row">
-            <span>{String(m.month).padStart(2, "0")}</span>
-            <span className={m.total >= 0 ? "score-pos" : "score-neg"}>{scoreLabel(m.total)}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
