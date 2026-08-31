@@ -13,8 +13,17 @@
 }
 
 .nav-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.25rem;
   margin: 0;
+}
+
+.nav-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
 }
 
 .nav-tabs {
