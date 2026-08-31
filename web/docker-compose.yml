@@ -1,0 +1,20 @@
+name: kaizen-web
+
+services:
+  kaizen-web:
+    build: .
+    image: kaizen-web:latest
+    container_name: kaizen-web
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kaizen-web.rule=Host(`kaizen.northernarchive.com`)"
+      - "traefik.http.routers.kaizen-web.entrypoints=websecure"
+      - "traefik.http.routers.kaizen-web.tls.certresolver=le"
+      - "traefik.http.services.kaizen-web.loadbalancer.server.port=80"
+
+networks:
+  proxy:
+    external: true

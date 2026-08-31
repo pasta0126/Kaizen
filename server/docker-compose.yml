@@ -1,0 +1,21 @@
+name: kaizen-api
+
+services:
+  kaizen-api:
+    build: .
+    image: kaizen-api:latest
+    container_name: kaizen-api
+    restart: unless-stopped
+    env_file: .env
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.kaizen-api.rule=Host(`kaizen-api.northernarchive.com`)
+      - traefik.http.routers.kaizen-api.entrypoints=websecure
+      - traefik.http.routers.kaizen-api.tls.certresolver=le
+      - traefik.http.services.kaizen-api.loadbalancer.server.port=8080
+
+networks:
+  proxy:
+    external: true
