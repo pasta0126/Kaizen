@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { colorForCategory } from "../categories";
 
 export default function QuickLogBar({ indicators, onQuickLog }) {
   const [search, setSearch] = useState("");
@@ -27,14 +28,16 @@ export default function QuickLogBar({ indicators, onQuickLog }) {
         />
       )}
       <div className="quicklog-bar">
-        {visible.map((ind) =>
-          ind.rule_type === "variant" ? (
+        {visible.map((ind) => {
+          const color = colorForCategory(ind.category);
+          return ind.rule_type === "variant" ? (
             <div className="quicklog-group" key={ind.id}>
               <span className="quicklog-name">{ind.name}</span>
               {ind.variants.map((v) => (
                 <button
                   key={v.id}
                   className="btn btn-log"
+                  style={{ borderColor: color, color }}
                   onClick={() => onQuickLog({ indicator_id: ind.id, variant_id: v.id })}
                 >
                   {v.label}
@@ -42,11 +45,16 @@ export default function QuickLogBar({ indicators, onQuickLog }) {
               ))}
             </div>
           ) : (
-            <button key={ind.id} className="btn btn-log" onClick={() => onQuickLog({ indicator_id: ind.id })}>
+            <button
+              key={ind.id}
+              className="btn btn-log"
+              style={{ borderColor: color, color }}
+              onClick={() => onQuickLog({ indicator_id: ind.id })}
+            >
               {ind.name}
             </button>
-          )
-        )}
+          );
+        })}
         {visible.length === 0 && <span className="quicklog-empty">Ningún indicador coincide con "{search}".</span>}
       </div>
     </div>

@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { CATEGORIES } from "../categories";
 
 const emptyVariant = () => ({ label: "", value: 0 });
 
 export default function IndicatorForm({ initial, onSubmit, onCancel }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [ruleType, setRuleType] = useState(initial?.rule_type ?? "per_occurrence");
+  const [category, setCategory] = useState(initial?.category ?? "");
   const [perOccurrenceValue, setPerOccurrenceValue] = useState(initial?.per_occurrence_value ?? 1);
   const [firstValue, setFirstValue] = useState(initial?.first_value ?? 0);
   const [repeatValue, setRepeatValue] = useState(initial?.repeat_value ?? -1);
@@ -26,7 +28,7 @@ export default function IndicatorForm({ initial, onSubmit, onCancel }) {
       return;
     }
 
-    const body = { name: name.trim(), rule_type: ruleType };
+    const body = { name: name.trim(), rule_type: ruleType, category };
     if (ruleType === "per_occurrence") {
       body.per_occurrence_value = Number(perOccurrenceValue);
     } else if (ruleType === "first_then_repeat") {
@@ -49,6 +51,18 @@ export default function IndicatorForm({ initial, onSubmit, onCancel }) {
       <label>
         Nombre
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="p. ej. Comer saludable" />
+      </label>
+
+      <label>
+        Categoría
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
+          <option value="">Sin categoría</option>
+          {CATEGORIES.map((c) => (
+            <option key={c.label} value={c.label}>
+              {c.label}
+            </option>
+          ))}
+        </select>
       </label>
 
       <label>

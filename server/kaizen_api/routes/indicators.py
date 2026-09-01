@@ -9,6 +9,25 @@ from ..scoring import ScoringError, validate_indicator_rule
 
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 
+# Fixed, product-owned set. Kept here (not a DB CHECK) so it can evolve without a
+# migration. The matching colors live in the web app (web/src/categories.js).
+ALLOWED_CATEGORIES = {
+    "Salud",
+    "Productividad",
+    "Relaciones",
+    "Finanzas",
+    "Crecimiento personal",
+    "Ocio y descanso",
+}
+
+def _normalize_category(value):
+    """Map "" -> None (explicitly uncategorized); reject anything outside the set."""
+    if value is None or value == "":
+        return None
+    if value not in ALLOWED_CATEGORIES:
+        raise HTTPException(status_code=422, detail=f"unknown category: {value}")
+    return value
+
 
 class VariantIn(BaseModel):
     label: str
@@ -22,6 +41,7 @@ class IndicatorCreate(BaseModel):
     first_value: int | None = None
     repeat_value: int | None = None
     variants: list[VariantIn] | None = None
+    category: str | None = None
 
 
 class IndicatorUpdate(BaseModel):
@@ -31,6 +51,8 @@ class IndicatorUpdate(BaseModel):
     first_value: int | None = None
     repeat_value: int | None = None
     variants: list[VariantIn] | None = None
+    # Omitted -> unchanged. "" -> clear to uncategorized. A name -> set it.
+    category: str | None = Field(default=None)
 
 
 def _row_to_dict(row) -> dict:
@@ -38,6 +60,7 @@ def _row_to_dict(row) -> dict:
         "id": str(row["id"]),
         "name": row["name"],
         "rule_type": row["rule_type"],
+        "category": row["category"],
         "per_occurrence_value": row["per_occurrence_value"],
         "first_value": row["first_value"],
         "repeat_value": row["repeat_value"],
@@ -80,12 +103,15 @@ async def create_indicator(body: IndicatorCreate, user_id: str = Depends(current
     except ScoringError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
+    category = _normalize_category(body.category)
+
     async with pool().acquire() as con:
         async with con.transaction():
             row = await con.fetchrow(
                 """
-                INSERT INTO indicator (user_id, name, rule_type, per_occurrence_value, first_value, repeat_value)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO indicator
+                    (user_id, name, rule_type, per_occurrence_value, first_value, repeat_value, category)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
                 RETURNING *
                 """,
                 uuid.UUID(user_id),
@@ -94,6 +120,7 @@ async def create_indicator(body: IndicatorCreate, user_id: str = Depends(current
                 body.per_occurrence_value,
                 body.first_value,
                 body.repeat_value,
+                category,
             )
             for v in body.variants or []:
                 await con.execute(
@@ -146,6 +173,8 @@ async def update_indicator(
                 else existing["per_occurrence_value"]
             )
             first_value = body.first_value if body.first_value is not None else existing["first_value"]
+            # Omitted (None) -> keep; "" -> clear; a name -> set (validated).
+            category = existing["category"] if body.category is None else _normalize_category(body.category)
             repeat_value = (
                 body.repeat_value if body.repeat_value is not None else existing["repeat_value"]
             )
@@ -170,8 +199,8 @@ async def update_indicator(
                 """
                 UPDATE indicator
                 SET name = $1, rule_type = $2, per_occurrence_value = $3,
-                    first_value = $4, repeat_value = $5, updated_at = now()
-                WHERE id = $6
+                    first_value = $4, repeat_value = $5, category = $6, updated_at = now()
+                WHERE id = $7
                 RETURNING *
                 """,
                 body.name if body.name is not None else existing["name"],
@@ -179,6 +208,7 @@ async def update_indicator(
                 per_occurrence_value,
                 first_value,
                 repeat_value,
+                category,
                 indicator_id,
             )
 

@@ -27,7 +27,7 @@ function bestBy(days, key) {
 
 const HISTORY_DAYS = 20;
 
-export default function Dashboard({ indicatorsById, refreshSignal }) {
+export default function Dashboard({ indicatorsById, refreshSignal, onEntryDeleted }) {
   const today = isoDate(new Date());
   const yesterday = shiftDate(today, -1);
   const historyFrom = shiftDate(today, -(HISTORY_DAYS - 1));
@@ -53,6 +53,11 @@ export default function Dashboard({ indicatorsById, refreshSignal }) {
       setLoading(false);
     });
   }, [selectedDate, refreshSignal]);
+
+  async function handleDeleteEntry(id) {
+    await api.deleteLog(id);
+    onEntryDeleted();
+  }
 
   const todayTotal = days.find((d) => d.date === today)?.total ?? 0;
   const yesterdayTotal = days.find((d) => d.date === yesterday)?.total ?? 0;
@@ -105,8 +110,15 @@ export default function Dashboard({ indicatorsById, refreshSignal }) {
             {dayData.entries.length === 0 && <li className="entry-empty">Sin registros este día.</li>}
             {dayData.entries.map((e) => (
               <li key={e.id} className="entry-row">
-                <span>{indicatorsById[e.indicator_id]?.name ?? "Indicador"}</span>
+                <span className="entry-name">{indicatorsById[e.indicator_id]?.name ?? "Indicador"}</span>
                 <span className={e.score >= 0 ? "score-pos" : "score-neg"}>{scoreLabel(e.score)}</span>
+                <button
+                  className="entry-delete"
+                  aria-label="Eliminar registro"
+                  onClick={() => handleDeleteEntry(e.id)}
+                >
+                  🗑
+                </button>
               </li>
             ))}
           </ul>

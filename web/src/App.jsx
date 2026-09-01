@@ -47,7 +47,11 @@ export default function App() {
         {tab === "dashboard" ? (
           <>
             <QuickLogBar indicators={indicators} onQuickLog={handleQuickLog} />
-            <Dashboard indicatorsById={indicatorsById} refreshSignal={refreshSignal} />
+            <Dashboard
+              indicatorsById={indicatorsById}
+              refreshSignal={refreshSignal}
+              onEntryDeleted={() => setRefreshSignal((n) => n + 1)}
+            />
           </>
         ) : (
           <IndicatorManager

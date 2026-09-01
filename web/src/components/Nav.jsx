@@ -3,10 +3,10 @@ import navIcon from "../assets/nav-icon.png";
 export default function Nav({ tab, onTabChange, onSignOut }) {
   return (
     <header className="nav">
-      <h1 className="nav-title">
+      <button type="button" className="nav-home" onClick={() => onTabChange("dashboard")}>
         <img src={navIcon} alt="" className="nav-icon" />
-        Kaizen
-      </h1>
+        <span className="nav-title">Kaizen</span>
+      </button>
       <nav className="nav-tabs">
         <button
           className={tab === "dashboard" ? "nav-tab nav-tab-active" : "nav-tab"}

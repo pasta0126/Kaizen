@@ -17,6 +17,10 @@ CREATE TABLE IF NOT EXISTS indicator (
     updated_at            timestamptz NOT NULL DEFAULT now()
 );
 
+-- Added later: optional fixed category (validated in the API, not by a CHECK
+-- constraint, so the allowed set can change without a migration). NULL = uncategorized.
+ALTER TABLE indicator ADD COLUMN IF NOT EXISTS category text;
+
 CREATE INDEX IF NOT EXISTS indicator_user_idx ON indicator (user_id);
 
 CREATE TABLE IF NOT EXISTS indicator_variant (
