@@ -3,10 +3,15 @@ import navIcon from "../assets/nav-icon.png";
 export default function Nav({ tab, onTabChange, onSignOut }) {
   return (
     <header className="nav">
-      <button type="button" className="nav-home" onClick={() => onTabChange("dashboard")}>
-        <img src={navIcon} alt="" className="nav-icon" />
-        <span className="nav-title">Kaizen</span>
-      </button>
+      <div className="nav-row">
+        <button type="button" className="nav-home" onClick={() => onTabChange("dashboard")}>
+          <img src={navIcon} alt="" className="nav-icon" />
+          <span className="nav-title">Kaizen</span>
+        </button>
+        <button className="btn btn-ghost nav-signout" onClick={onSignOut}>
+          Salir
+        </button>
+      </div>
       <nav className="nav-tabs">
         <button
           className={tab === "dashboard" ? "nav-tab nav-tab-active" : "nav-tab"}
@@ -21,9 +26,6 @@ export default function Nav({ tab, onTabChange, onSignOut }) {
           Indicadores
         </button>
       </nav>
-      <button className="btn btn-ghost" onClick={onSignOut}>
-        Salir
-      </button>
     </header>
   );
 }

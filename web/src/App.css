@@ -1,57 +1,75 @@
 .app {
   max-width: 960px;
   margin: 0 auto;
-  padding: 0 1rem 3rem;
+  padding: 0 0.75rem 2.5rem;
 }
 
+/* Nav — mobile first: stacked (top row + full-width tabs), row layout from tablet up */
 .nav {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.5rem 0;
   border-bottom: 1px solid var(--border);
+}
+
+.nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
 .nav-home {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   background: none;
   border: none;
   padding: 0;
   margin: 0;
   cursor: pointer;
   color: var(--text);
+  min-width: 0;
 }
 
 .nav-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 600;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .nav-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
   flex-shrink: 0;
   display: block;
 }
 
+.nav-signout {
+  flex-shrink: 0;
+}
+
 .nav-tabs {
   display: flex;
-  gap: 0.5rem;
-  flex: 1;
+  gap: 0.4rem;
+  width: 100%;
 }
 
 .nav-tab {
+  flex: 1;
   background: none;
   border: none;
   color: var(--text-dim);
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.5rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  min-height: 2.5rem;
+  text-align: center;
 }
 
 .nav-tab-active {
@@ -59,14 +77,63 @@
   color: var(--text);
 }
 
+@media (min-width: 640px) {
+  .app {
+    padding: 0 1rem 3rem;
+  }
+
+  .nav {
+    flex-direction: row;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .nav-row {
+    display: contents;
+  }
+
+  .nav-home {
+    order: 1;
+  }
+
+  .nav-tabs {
+    order: 2;
+  }
+
+  .nav-signout {
+    order: 3;
+  }
+
+  .nav-title {
+    font-size: 1.25rem;
+  }
+
+  .nav-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .nav-tabs {
+    flex: 1;
+    width: auto;
+  }
+
+  .nav-tab {
+    flex: none;
+    padding: 0.5rem 0.75rem;
+    min-height: 0;
+  }
+}
+
 .btn {
   border: 1px solid var(--border);
   background: var(--panel);
   color: var(--text);
-  padding: 0.5rem 0.9rem;
+  padding: 0.55rem 0.9rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
+  min-height: 2.25rem;
 }
 
 .btn-primary {
@@ -99,10 +166,17 @@
 }
 
 .app-main {
-  padding-top: 1.5rem;
+  padding-top: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .app-main {
+    padding-top: 1.5rem;
+    gap: 2rem;
+  }
 }
 
 /* Sign-in */
@@ -111,14 +185,23 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  padding: 1.5rem;
 }
 
 .signin-card {
+  width: 100%;
+  max-width: 22rem;
   text-align: center;
-  padding: 2.5rem;
+  padding: 1.75rem 1.5rem;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--panel);
+}
+
+@media (min-width: 640px) {
+  .signin-card {
+    padding: 2.5rem;
+  }
 }
 
 /* Quick log */
@@ -137,12 +220,13 @@
 
 .quicklog-group {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.3rem 0.5rem;
+  padding: 0.4rem 0.5rem;
 }
 
 .quicklog-name {
@@ -157,21 +241,31 @@
 
 /* Stats row */
 .stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
 }
 
 .stat-card {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  padding: 0.6rem 0.9rem;
+  padding: 0.6rem 0.8rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  min-width: 8rem;
-  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 0.6rem 0.9rem;
+  }
 }
 
 .stat-label {
@@ -180,8 +274,14 @@
 }
 
 .stat-value {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .stat-value {
+    font-size: 1.25rem;
+  }
 }
 
 .stat-sub {
@@ -194,6 +294,7 @@
   margin-top: 1.25rem;
   overflow-x: auto;
   overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 .chart-skeleton {
@@ -229,9 +330,16 @@
 }
 
 .period-view h2 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--text-dim);
   font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .period-view h2 {
+    font-size: 1rem;
+  }
 }
 
 .entry-list {
@@ -246,8 +354,8 @@
 .entry-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
+  gap: 0.6rem;
+  padding: 0.5rem 0.65rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -255,6 +363,8 @@
 
 .entry-name {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .entry-delete {
@@ -264,8 +374,9 @@
   cursor: pointer;
   font-size: 0.9rem;
   line-height: 1;
-  padding: 0.15rem 0.3rem;
+  padding: 0.3rem;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .entry-delete:hover {
@@ -289,8 +400,10 @@
 /* Indicator manager */
 .indicator-manager-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.6rem;
 }
 
 .indicator-search {
@@ -299,7 +412,7 @@
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 6px;
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.75rem;
   font-size: 0.9rem;
 }
 
@@ -337,20 +450,31 @@
 
 .indicator-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.6rem;
   padding: 0.75rem;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 8px;
-  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .indicator-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
 }
 
 .indicator-info {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .indicator-rule {
@@ -390,23 +514,34 @@
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 6px;
-  padding: 0.4rem 0.5rem;
+  padding: 0.5rem;
   font-size: 0.9rem;
+  min-width: 0;
+  width: 100%;
 }
 
 .form-row {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
+}
+
+@media (min-width: 480px) {
+  .form-row {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .form-row label {
   flex: 1;
+  min-width: 0;
 }
 
 .form-actions {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .form-error {
