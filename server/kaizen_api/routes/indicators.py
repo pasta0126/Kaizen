@@ -18,6 +18,7 @@ ALLOWED_CATEGORIES = {
     "Finanzas",
     "Crecimiento personal",
     "Ocio y descanso",
+    "Eventos",
 }
 
 def _normalize_category(value):
