@@ -37,6 +37,7 @@ export default function Dashboard({ indicatorsById, refreshSignal, onEntryDelete
   const [dayData, setDayData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [chartLoading, setChartLoading] = useState(true);
+  const [totalPoints, setTotalPoints] = useState(0);
 
   useEffect(() => {
     setChartLoading(true);
@@ -44,6 +45,7 @@ export default function Dashboard({ indicatorsById, refreshSignal, onEntryDelete
       setDays(res.days);
       setChartLoading(false);
     });
+    api.dashboardTotal().then((res) => setTotalPoints(res.total));
   }, [refreshSignal]);
 
   useEffect(() => {
@@ -69,8 +71,8 @@ export default function Dashboard({ indicatorsById, refreshSignal, onEntryDelete
     <div className="dashboard">
       <div className="stats-row">
         <div className="stat-card">
-          <span className="stat-label">Ayer</span>
-          <span className="stat-value">{scoreLabel(yesterdayTotal)}</span>
+          <span className="stat-label">Total acumulado</span>
+          <span className="stat-value">{scoreLabel(totalPoints)}</span>
         </div>
         <div className="stat-card">
           <span className="stat-label">Hoy</span>

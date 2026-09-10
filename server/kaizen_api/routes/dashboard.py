@@ -143,6 +143,17 @@ async def year_view(year: int | None = None, user_id: str = Depends(current_user
     }
 
 
+@router.get("/total")
+async def total_view(user_id: str = Depends(current_user_id)) -> dict:
+    user_uuid = uuid.UUID(user_id)
+    async with pool().acquire() as con:
+        total = await con.fetchval(
+            "SELECT COALESCE(SUM(score), 0) FROM log_entry WHERE user_id = $1",
+            user_uuid,
+        )
+    return {"total": total}
+
+
 @router.get("/heatmap")
 async def heatmap(
     date_from: dt.date | None = None,
