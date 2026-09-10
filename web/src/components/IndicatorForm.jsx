@@ -57,7 +57,7 @@ export default function IndicatorForm({ initial, onSubmit, onCancel }) {
         Categoría
         <select value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="">Sin categoría</option>
-          {CATEGORIES.map((c) => (
+          {[...CATEGORIES].sort((a, b) => a.label.localeCompare(b.label, "es")).map((c) => (
             <option key={c.label} value={c.label}>
               {c.label}
             </option>

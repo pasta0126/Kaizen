@@ -12,6 +12,7 @@ export const CATEGORIES = [
   { label: "Crecimiento personal", color: "#8a63d2" },
   { label: "Ocio y descanso", color: "#c9a227" },
   { label: "Eventos", color: "#c0392b" },
+  { label: "Hogar", color: "#8d6e63" },
 ];
 
 const BY_LABEL = new Map(CATEGORIES.map((c) => [c.label, c]));
